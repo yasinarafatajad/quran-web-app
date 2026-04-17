@@ -47,6 +47,9 @@ export const metadata: Metadata = {
       "Read the Holy Quran with Arabic text and English translation.",
     type: "website",
   },
+  verification: {
+    google: "zM88wOzTVkD5ZWHiOEjquywBRnz9UF0ZMRjqbaB9qmc",
+  },
 };
 
 export default function RootLayout({
