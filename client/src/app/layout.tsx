@@ -28,6 +28,7 @@ const scheherazade = Scheherazade_New({
 export const metadata: Metadata = {
   title: {
     default: "Quran | The Supreme Rule of Your Life",
+    template: "%s | Quran",
   },
   description:
     "Read the Holy Quran online with Arabic Uthmani text and Sahih International English translation. Beautiful, fast, and responsive.",
