@@ -1,15 +1,12 @@
-import { getAllSurahs, getSurahWithTranslation } from "@/lib/api";
+export const dynamic = "force-dynamic";
+
+import { getSurahWithTranslation } from "@/lib/api";
 import AyahList from "./AyahList";
 import Link from "next/link";
 import { Metadata } from "next";
 
 interface Props {
   params: Promise<{ number: string }>;
-}
-
-export async function generateStaticParams() {
-  const surahs = await getAllSurahs();
-  return surahs.map((s) => ({ number: s.number.toString() }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
