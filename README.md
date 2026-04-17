@@ -8,6 +8,10 @@ A production-grade Quran web application built with **Next.js 16**, **Tailwind C
 
 ---
 
+## 🌐 Live Demo: https://quranic-bridge.vercel.app
+
+---
+
 ## Features
 
 | Feature                    | Description                                                             |
