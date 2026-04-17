@@ -4,10 +4,47 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.alquran.cloud/v1";
 
 /**
+ * Fetch with retry and exponential backoff to handle API rate-limiting
+ * during SSG builds (114 surahs × 3 requests each).
+ */
+async function fetchWithRetry(
+  url: string,
+  options?: RequestInit,
+  retries = 5,
+  baseDelay = 1000,
+): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok) return res;
+
+      // If rate-limited (429) or server error (5xx), retry
+      if ((res.status === 429 || res.status >= 500) && attempt < retries) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+      return res; // Return non-retryable error responses as-is
+    } catch (err) {
+      if (attempt < retries) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+  // Should never reach here, but just in case
+  return fetch(url, options);
+}
+
+/**
  * Fetch all 114 surahs metadata
  */
 export async function getAllSurahs(): Promise<Surah[]> {
-  const res = await fetch(`${BASE_URL}/surah`, { next: { revalidate: 86400 } });
+  const res = await fetchWithRetry(`${BASE_URL}/surah`, {
+    next: { revalidate: 86400 },
+  });
   if (!res.ok) throw new Error("Failed to fetch surahs");
   const data = await res.json();
   return data.data as Surah[];
@@ -20,13 +57,13 @@ export async function getSurahWithTranslation(
   surahNumber: number,
 ): Promise<SurahDetail> {
   const [arabicRes, translationRes, banglaRes] = await Promise.all([
-    fetch(`${BASE_URL}/surah/${surahNumber}/quran-uthmani`, {
+    fetchWithRetry(`${BASE_URL}/surah/${surahNumber}/quran-uthmani`, {
       next: { revalidate: 86400 },
     }),
-    fetch(`${BASE_URL}/surah/${surahNumber}/en.sahih`, {
+    fetchWithRetry(`${BASE_URL}/surah/${surahNumber}/en.sahih`, {
       next: { revalidate: 86400 },
     }),
-    fetch(`${BASE_URL}/surah/${surahNumber}/bn.bengali`, {
+    fetchWithRetry(`${BASE_URL}/surah/${surahNumber}/bn.bengali`, {
       next: { revalidate: 86400 },
     }),
   ]);
